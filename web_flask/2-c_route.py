@@ -23,7 +23,7 @@ def hbnb():
 def text(text):
     """ Display 'C' followed by the value of 'text' variable,
     replacing underscore symbols with a space. """
-    return f"C {text}".format(text.replace('_', ' '))
+    return "C "+text.replace('_', ' ')
 
 
 if __name__ == "__main__":
