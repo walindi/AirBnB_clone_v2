@@ -2,7 +2,6 @@
 """
 DB storage class
 """
-import models
 from models.base_model import BaseModel, Base
 from models.user import User
 from models.state import State
@@ -11,7 +10,7 @@ from models.amenity import Amenity
 from models.place import Place
 from models.review import Review
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.orm import sessionmaker, scoped_session, relationship
 from os import getenv
 
 
@@ -21,14 +20,12 @@ class DBStorage:
 
     def __init__(self):
         """initialize connection with MySQL"""
-        db_uri = "{0}+{1}://{2}:{3}@{4}:3306/{5}".format(
-            'mysql', 'mysqldb', getenv('HBNB_MYSQL_USER'),
-            getenv('HBNB_MYSQL_PWD'), getenv('HBNB_MYSQL_HOST'),
-            getenv('HBNB_MYSQL_DB')
-        )
-
-        self.__engine = create_engine(db_uri, pool_pre_ping=True)
-        self.reload()
+        self.__engine = create_engine("mysql+mysqldb://{}:{}@{}/{}".
+                                      format(getenv("HBNB_MYSQL_USER"),
+                                             getenv("HBNB_MYSQL_PWD"),
+                                             getenv("HBNB_MYSQL_HOST"),
+                                             getenv("HBNB_MYSQL_DB")),
+                                      pool_pre_ping=True)
 
         if getenv('HBNB_ENV') == "test":
             Base.metadata.drop_all(self.__engine)
@@ -36,14 +33,12 @@ class DBStorage:
     def all(self, cls=None):
         """Query objects from the current database session"""
         if cls is None:
-            objs = (
-                self.__session.query(State).all()
-                + self.__session.query(City).all()
-                + self.__session.query(Review).all()
-                + self.__session.query(Place).all()
-                + self.__session.query(User).all()
-                + self.__session.query(Amenity).all()
-            )
+            objs = self.__session.query(State).all()
+            objs.extend(self.__session.query(City).all())
+            objs.extend(self.__session.query(User).all())
+            objs.extend(self.__session.query(Place).all())
+            objs.extend(self.__session.query(Review).all())
+            objs.extend(self.__session.query(Amenity).all())
         else:
             if isinstance(cls, str):
                 cls = eval(cls)
